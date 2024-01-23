@@ -5,7 +5,7 @@ dailyActivity <- dailyActivity %>%
   mutate(date = mdy(ActivityDate))
 
 dailyIntensity <- dailyIntensities %>% 
-  mutate(date = mdy(ActivityDay)) #%>% 
+  mutate(date = mdy(ActivityDay)) %>% 
   #select(-Id:ActivityDay) %>% 
   pivot_longer(
     cols = SedentaryMinutes:VeryActiveDistance,
