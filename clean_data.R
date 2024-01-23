@@ -1,5 +1,5 @@
 library(tidyverse)
 library(lubridate)
 
-dailyActivity %>% 
-  mutate(date = myd(ActivityDate))
+dailyActivity <- dailyActivity %>% 
+  mutate(date = mdy(ActivityDate))
