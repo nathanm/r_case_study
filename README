@@ -1,4 +1,4 @@
-This is the code for an R case study that is the capstone for Google's Data Analytics Professional Certificate at Coursera (https://www.coursera.org/professional-certificates/google-data-analytics). The criteria for this project is found in the the packet for case study 2: "How Can a Wellness Technology Company Play It Smart?"
+This is the code for an R case study that is the capstone for Google's Data Analytics Professional Certificate at Coursera (https://www.coursera.org/professional-certificates/google-data-analytics). The criteria for this project is found in the packet for case study 2: "How Can a Wellness Technology Company Play It Smart?"
 
 The data for this case study can be downloaded from Kaggle (https://www.kaggle.com/datasets/arashnic/fitbit), then unzipped into a "data" folder in this project. It contains the following files:
 dailyActivity_merged.csv
