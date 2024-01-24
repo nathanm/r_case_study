@@ -10,5 +10,5 @@ ggplot(dailyCalories, aes(x = date, y = Calories, color = Id)) +
 ggplot(Calories, aes(x = Id, y = average)) +
   geom_col()
 
-ggplot(dailyIntensities, aes(x = date, y = Calories, fill = )) +
-  geom_bar()
+ggplot(Intensity, aes(x = Id, y = average, fill = intensity)) +
+  geom_col()
