@@ -18,6 +18,15 @@ Calories <- dailyCalories %>%
   summarize(average = mean(Calories)) %>% 
   arrange(-average)
 
+dailySteps <- dailySteps %>% 
+  mutate(
+    Id = as.character(Id),
+    date = mdy(ActivityDay),
+    StepTotal = as.integer(StepTotal)
+  ) %>% 
+  select(Id, date, StepTotal)
+
+
 dailyIntensities <- dailyIntensities %>% 
   pivot_longer(
     cols = !c(Id, ActivityDay),

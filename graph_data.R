@@ -8,7 +8,11 @@ ggplot(dailyCalories, aes(x = date, y = Calories, color = Id)) +
   geom_line()
 
 ggplot(Calories, aes(x = Id, y = average)) +
-  geom_col()
+  geom_col() + 
+  coord_flip()
+
+ggplot(dailySteps, aes(x = date, y = StepTotal, color = Id)) +
+  geom_line()
 
 ggplot(Intensity, aes(x = Id, y = average, fill = intensity)) +
   geom_col()
