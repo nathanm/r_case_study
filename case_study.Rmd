@@ -7,13 +7,22 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
 ```
 
 ## Business task
 
+The purpose of this analysis is to identify ways that consumers use smart devices. What are some trends in usage, how could they apply to customers, and how could that affect marketing.
+
 ## Data sources
 
+This analysis used a publicly available dataset on Kaggle, "[FitBit Fitness Tracker Data](https://www.kaggle.com/datasets/arashnic/fitbit)." It includes several overlapping CSV files, of varying sizes, from a few KB with 67 observations of 8 variables, to 85 MB with 2.5 million observations of 3 variables. Some are for specific activities from the devices, and others are combined, using both long and wide data formats.
+
 ## Data cleaning
+
+The exploratory data analysis of the daily intensities table revealed it was in a wide format, with time and distance observations by multiple categorical intensity variables in one row. It had to be transformed into an intermediary long data form, separating the intensity from time or distance values, turning the intensities into factors, then finally transformed into a wider format for each intensity with its associated time and distance.
+
+All the dates in this dataset were strings, which had to be transformed into actual date variables.
 
 ## Analysis summary
 
@@ -22,8 +31,6 @@ knitr::opts_chunk$set(echo = TRUE)
 ## Recommendations
 
 ```{r placeholder1}
-library(tidyverse)
-
 Anscombe <- anscombe %>%
 	pivot_longer(everything(),
 		names_to = c(".value", "set"),
