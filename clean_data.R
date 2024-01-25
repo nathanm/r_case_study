@@ -26,6 +26,10 @@ dailySteps <- dailySteps %>%
   ) %>% 
   select(Id, date, StepTotal)
 
+Steps <- dailySteps %>% 
+  group_by(Id) %>% 
+  summarize(average = mean(StepTotal)) %>% 
+  arrange(-average)
 
 dailyIntensities <- dailyIntensities %>% 
   pivot_longer(
