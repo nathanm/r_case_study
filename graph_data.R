@@ -7,14 +7,14 @@ ggplot(dailyActivity, aes(x = date, y = Calories)) +
 ggplot(dailyCalories, aes(x = date, y = Calories, color = Id)) +
   geom_line()
 
-ggplot(Calories, aes(x = Id, y = average)) +
+ggplot(Calories, aes(x = reorder(Id, average), y = average)) +
   geom_col() + 
   coord_flip()
 
 ggplot(dailySteps, aes(x = date, y = StepTotal, color = Id)) +
   geom_line()
 
-ggplot(Steps, aes(x = Id, y = average)) +
+ggplot(Steps, aes(x = reorder(Id, average), y = average)) +
   geom_col() + 
   coord_flip()
 
