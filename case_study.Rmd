@@ -25,7 +25,6 @@ dailyIntensities <- read_csv("data/dailyIntensities_merged.csv")
 dailySteps <- read_csv("data/dailySteps_merged.csv")
 ```
 
-
 ## Data cleaning
 
 Exploratory data analysis revealed some tables were in a wide format, with time and distance observations by multiple categories in one row. They had to be transformed into an intermediary long data form, separating the categories from time or distance values, turning the categories into factors, then finally transformed into a wider format with each categorical variable with its associated time and/or distance. Some categories also used different names between their time and distance values.
@@ -192,8 +191,14 @@ This analysis did not look at the sleep data.
 
 ## Key findings
 
+* About half the participants in this dataset appeared to wear their smart devices all the time. The rest appeared to only wear them during waking hours. The latter may not be aware of devices' ability to track sleep data.
 
+* Although positive relationships between either total steps or non-sedentary activity are rather obvious, the activity data revealed plateaus in the relationship to calories burned.
 
 ## Recommendations
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+Marketing copy could emphasize the app/device features to track and analyze sleep patterns to ensure all users are aware of them.
+
+Add features to the device/app that gently remind/nudge users to be more active, with goals to reach the active and/or moderately active plateaus. Furthermore, the device/app could be modified to identify these plateaus for individual users over time.
+
+These features could be gamified, so reaching goals could generate points, which could be rewarded with "badges" for reaching milestones, e.g. so many consecutive or cumulative days of reaching specific goals, and competing among "friends" on the app. (See [Duolingo](https://www.duolingo.com/) for an example of a wildly successful app that does just that.)
