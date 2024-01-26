@@ -5,6 +5,18 @@ dailyActivity <- dailyActivity %>%
   mutate(date = mdy(ActivityDate)) %>% 
   select(Id, date, TotalSteps:Calories)
 
+dailyActivity <- dailyActivity %>% 
+  mutate(active = VeryActiveMinutes + FairlyActiveMinutes + LightlyActiveMinutes)
+
+dailyActivity <- dailyActivity %>% 
+  mutate(modActive = VeryActiveMinutes + FairlyActiveMinutes)
+
+dailyActivityNoZero <- dailyActivity %>% 
+  filter(TotalSteps > 0, active > 0)
+
+dailyActivityNoModZero <- dailyActivityNoZero %>% 
+  filter(modActive > 0)
+
 dailyCalories <- dailyCalories %>% 
   mutate(
     Id = as.character(Id),
@@ -52,5 +64,9 @@ dailyIntensities <- dailyIntensities %>%
   select(c(Id, date, intensity, Minutes, Distance))
 
 Intensity <- dailyIntensities %>% 
-  group_by(Id) %>% 
+  group_by(Id, intensity) %>% 
   summarize(average = mean(Minutes))
+
+ActiveIntensity <- Intensity %>% 
+  filter(intensity != "Sedentary")
+  

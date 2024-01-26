@@ -18,46 +18,182 @@ The purpose of this analysis is to identify ways that consumers use smart device
 
 This analysis used a publicly available dataset on Kaggle, "[FitBit Fitness Tracker Data](https://www.kaggle.com/datasets/arashnic/fitbit)." It includes several overlapping CSV files, of varying sizes, from a few KB with 67 observations of 8 variables, to 85 MB with 2.5 million observations of 3 variables. Some are for specific activities from the devices, and others are combined, using both long and wide data formats.
 
+```{r}
+dailyActivity <- read_csv("data/dailyActivity_merged.csv")
+dailyCalories <- read_csv("data/dailyCalories_merged.csv")
+dailyIntensities <- read_csv("data/dailyIntensities_merged.csv")
+dailySteps <- read_csv("data/dailySteps_merged.csv")
+```
+
+
 ## Data cleaning
 
-The exploratory data analysis of the daily intensities table revealed it was in a wide format, with time and distance observations by multiple categorical intensity variables in one row. It had to be transformed into an intermediary long data form, separating the intensity from time or distance values, turning the intensities into factors, then finally transformed into a wider format for each intensity with its associated time and distance.
+Exploratory data analysis revealed some tables were in a wide format, with time and distance observations by multiple categories in one row. They had to be transformed into an intermediary long data form, separating the categories from time or distance values, turning the categories into factors, then finally transformed into a wider format with each categorical variable with its associated time and/or distance. Some categories also used different names between their time and distance values.
 
 All the dates in this dataset were strings, which had to be transformed into actual date variables.
 
+```{r}
+dailyActivity <- dailyActivity %>% 
+  mutate(date = mdy(ActivityDate)) %>% 
+  select(Id, date, TotalSteps:Calories)
+
+dailyCalories <- dailyCalories %>% 
+  mutate(
+    Id = as.character(Id),
+    date = mdy(ActivityDay),
+    Calories = as.integer(Calories)
+  ) %>% 
+  select(Id, date, Calories)
+
+dailySteps <- dailySteps %>% 
+  mutate(
+    Id = as.character(Id),
+    date = mdy(ActivityDay),
+    StepTotal = as.integer(StepTotal)
+  ) %>% 
+  select(Id, date, StepTotal)
+
+dailyIntensities <- dailyIntensities %>% 
+  pivot_longer(
+    cols = !c(Id, ActivityDay),
+    names_to = c("intensity", "type"),
+    names_pattern = "(.*)(Minutes|Distance)"
+  ) %>% 
+  mutate(
+    date = mdy(ActivityDay),
+    intensity = factor(
+      intensity,
+      levels = c("Sedentary", "SedentaryActive", "LightlyActive", "LightActive", "FairlyActive", "ModeratelyActive", "VeryActive"),
+      labels = c("Sedentary", "Sedentary", "LightlyActive", "LightlyActive", "ModeratelyActive", "ModeratelyActive", "VeryActive")
+    )
+  ) %>% 
+  pivot_wider(
+    names_from = type,
+    values_from = value
+  ) %>% 
+  select(c(Id, date, intensity, Minutes, Distance))
+```
+
+The user IDs for the 32 participants in this dataset were 10-digit numbers, which were not helpful, so they are suppressed on graphs.
+
+The specific tables were further summarized to get average daily values for calories, steps, and intensity.
+```{r}
+Calories <- dailyCalories %>% 
+  group_by(Id) %>% 
+  summarize(average = mean(Calories)) %>% 
+  arrange(-average)
+
+Steps <- dailySteps %>% 
+  group_by(Id) %>% 
+  summarize(average = mean(StepTotal)) %>% 
+  arrange(-average)
+
+Intensity <- dailyIntensities %>% 
+  group_by(Id, intensity) %>% 
+  summarize(average = mean(Minutes))
+```
+
 ## Analysis summary
+
+A simple plot of steps vs. calories in the summary activity data showed the obvious relationship that more steps equal more calories burned. (Three outlier points beyond 25,000 steps were removed to avoid a trend line with large confidence intervals.)
+```{r}
+ggplot(dailyActivity, aes(x = TotalSteps, y = Calories)) +
+  geom_point() +
+  xlim(0,25000) + # 3 obs > 25k skew the smoothed conf int
+  geom_smooth()
+```
+
+Plotting the daily calorie burn of all 32 participants is too messy.
+```{r}
+ggplot(dailyCalories, aes(x = date, y = Calories, color = Id)) +
+  geom_line(show.legend = FALSE)
+
+```
+
+Therefore, plotting only their daily average reveals a wide range.
+```{r}
+ggplot(Calories, aes(x = reorder(Id, average), y = average)) +
+  geom_col() + 
+  scale_x_discrete(name = "users", labels = NULL)
+```
+
+Likewise, plotting the steps revealed the same disparity.
+```{r}
+ggplot(dailySteps, aes(x = date, y = StepTotal, color = Id)) +
+  geom_line(show.legend = FALSE)
+
+ggplot(Steps, aes(x = reorder(Id, average), y = average)) +
+  geom_col() + 
+  scale_x_discrete(name = "users", labels = NULL)
+```
+
+Turning to the intensity data, it is clear about half the participants wore their devices nearly 24 hours/day, while the rest probably wore them only during waking hours.
+```{r}
+ggplot(Intensity, aes(x = reorder(factor(Id), -average), y = average, fill = intensity)) +
+  geom_col() +
+  scale_x_discrete(name = "users", labels = NULL)
+```
+
+Filtering the intensity data for only non-sedentary activity is more helpful. Participants also ranged widely in activity, from more than five hours to less than one hour of average daily non-sedentary activity.
+```{r}
+ActiveIntensity <- Intensity %>% 
+  filter(intensity != "Sedentary")
+
+ggplot(ActiveIntensity, aes(x = reorder(factor(Id), -average), y = average, fill = intensity)) +
+  geom_col() +
+  scale_x_discrete(name = "users", labels = NULL)
+```
+
+Going back to the summary activity data, adding the non-sedentary activity together and plotting that vs. calories shows a similarly obvious positive relationship between them, but with a slight plateau after about four hours or so.
+```{r}
+dailyActivity <- dailyActivity %>% 
+  mutate(active = VeryActiveMinutes + FairlyActiveMinutes + LightlyActiveMinutes)
+
+ggplot(dailyActivity, aes(x = active, y = Calories)) +
+  geom_point() +
+  geom_smooth()
+```
+
+Ignoring the lightly active time shows a similar positive relationship, though with a stronger positive relationship (R^2^ = 0.60 vs. 0.47). On the other hand, it appears to plateau at an even lower value, around 15 minutes!
+```{r}
+dailyActivity <- dailyActivity %>% 
+  mutate(modActive = VeryActiveMinutes + FairlyActiveMinutes)
+
+ggplot(dailyActivity, aes(x = modActive, y = Calories)) +
+  geom_point() +
+  geom_smooth()
+
+cor(dailyActivity$Calories, dailyActivity$active)
+cor(dailyActivity$Calories, dailyActivity$modActive)
+```
+
+Another issue in several of the previous graphs is that a large number of points with zero minutes still show a wide range of calories burned. These were possibly from days where the device was not used but calories were somehow still input. Filtering those points out and replotting the steps, active, and moderately active graphs shows the same general trends, but perhaps clearer. While the plateau around 15 minutes of moderate activity remains, after an hour or so, the positive correlation with calorie burn continues.
+```{r}
+dailyActivityNoZero <- dailyActivity %>% 
+  filter(TotalSteps > 0, active > 0)
+
+ggplot(dailyActivityNoZero, aes(x = TotalSteps, y = Calories)) +
+  geom_point() +
+  geom_smooth()
+
+ggplot(dailyActivityNoZero, aes(x = active, y = Calories)) +
+  geom_point() +
+  geom_smooth()
+
+dailyActivityNoModZero <- dailyActivityNoZero %>% 
+  filter(modActive > 0)
+
+ggplot(dailyActivityNoModZero, aes(x = modActive, y = Calories)) +
+  geom_point() +
+  geom_smooth()
+```
+
+This analysis did not look at the sleep data.
 
 ## Key findings
 
+
+
 ## Recommendations
-
-```{r placeholder1}
-Anscombe <- anscombe %>%
-	pivot_longer(everything(),
-		names_to = c(".value", "set"),
-		names_pattern = "(.)(.)"
-	) %>%
-	arrange(set)
-
-Anscombe %>%
-	group_by(set) %>%
-	summarize(
-		N = n(), 
-		mean.x = mean(x), 
-		sd.x = sd(x), 
-		mean.y = mean(y), 
-		sd.y = sd(y), 
-		corr.xy = cor(x, y)
-	)
-```
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r placeholder2, echo=FALSE}
-ggplot(data = Anscombe, aes(x = x, y = y)) +
-	geom_point() +
-	facet_wrap(~ set)
-```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
